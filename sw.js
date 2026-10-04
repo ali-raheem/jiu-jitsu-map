@@ -2,7 +2,7 @@
 // and only requests inside this app's scope are handled.
 
 const CACHE_PREFIX = 'jjmap-static-';
-const VERSION = '1.0.0';
+const VERSION = '1.0.1';
 const CACHE = CACHE_PREFIX + VERSION;
 
 const ASSETS = [

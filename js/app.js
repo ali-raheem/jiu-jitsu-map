@@ -5,7 +5,7 @@ import { renderPrint, DEFAULT_PRINT_OPTS } from './print.js';
 import * as share from './share.js';
 import { sampleMap } from './sample.js';
 
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.0.1';
 const CACHE_PREFIX = 'jjmap-static-';
 
 const $ = (sel) => document.querySelector(sel);
@@ -608,36 +608,85 @@ const mapActions = {
 
 // ---------- import / share ----------
 
-async function importMaps(rawMaps, source) {
-  const maps = rawMaps.map((r) => store.normalizeMap(r, { freshId: true }));
-  const names = new Set(store.listMaps().map((e) => e.name));
-  const summary = maps.map((m) => h('li', {}, h('strong', {}, m.name), ` — ${m.states.length} states, ${m.transitions.length} techniques`));
-  const ok = await modal({
+async function importMaps(rawMaps, source, { allowRestore = false } = {}) {
+  // Keep original IDs so a restore can match maps already on this device.
+  const seen = new Set();
+  const maps = rawMaps.map((r) => {
+    const m = store.normalizeMap(r);
+    if (seen.has(m.id)) m.id = store.uid('m');
+    seen.add(m.id);
+    return m;
+  });
+  const existing = new Map(store.listMaps().map((e) => [e.id, e]));
+  const matching = allowRestore ? maps.filter((m) => existing.has(m.id)) : [];
+
+  const summary = maps.map((m) => h('li', {}, h('strong', {}, m.name),
+    ` — ${m.states.length} states, ${m.transitions.length} techniques`,
+    matching.includes(m) ? h('span', { class: 'muted' }, ' (on this device)') : null));
+  const actions = [{ value: 'cancel', label: 'Cancel' }];
+  if (matching.length) actions.push({ value: 'restore', label: 'Restore' });
+  actions.push({ value: 'copy', label: matching.length ? 'Add as copies' : 'Import', primary: true });
+
+  const choice = await modal({
     title: maps.length > 1 ? `Import ${maps.length} maps?` : 'Import map?',
     body: [
       h('p', {}, `From ${source}:`),
       h('ul', { class: 'import-list' }, summary),
-      h('p', { class: 'muted' }, 'Imported maps are added as new maps. Your existing maps are not changed.'),
+      matching.length
+        ? h('p', { class: 'muted' },
+          `Restore replaces the ${matching.length === 1 ? 'map' : `${matching.length} maps`} already on this device with the backup version and adds the rest. `,
+          'Add as copies keeps everything you have and adds the backup alongside it.')
+        : h('p', { class: 'muted' }, 'Imported maps are added as new maps. Your existing maps are not changed.'),
     ],
-    actions: [{ value: 'cancel', label: 'Cancel' }, { value: 'ok', label: 'Import', primary: true }],
+    actions,
   });
-  if (ok !== 'ok') return;
+  if (choice !== 'restore' && choice !== 'copy') return;
+
+  const restoring = choice === 'restore';
+  const replaced = [];
+  const added = [];
+  if (restoring) store.flush(); // so the snapshots below include the latest edits
+  const names = new Set([...existing.values()].map((e) => e.name));
   for (const m of maps) {
-    if (names.has(m.name)) m.name += ' (imported)';
-    m.updated = Date.now();
+    if (restoring && existing.has(m.id)) {
+      const prev = store.loadMap(m.id);
+      if (prev) replaced.push(prev);
+    } else {
+      if (!restoring || existing.has(m.id)) m.id = store.uid('m');
+      if (!restoring && names.has(m.name)) m.name += ' (imported)';
+      if (!restoring) m.updated = Date.now();
+      added.push(m.id);
+    }
     store.saveMap(m);
   }
   if (!store.flush()) return;
   requestPersistence();
-  openMap(maps[0].id);
-  toast(maps.length > 1 ? `Imported ${maps.length} maps.` : `Imported “${maps[0].name}”.`);
+
+  const current = maps.find((m) => m.id === app.map?.id) || maps[0];
+  openMap(current.id);
+  const count = maps.length > 1 ? `${maps.length} maps` : `“${maps[0].name}”`;
+  if (!restoring) {
+    toast(`Imported ${count}.`);
+    return;
+  }
+  toast(`Restored ${count}.`, {
+    action: 'Undo',
+    duration: 10000,
+    onAction: () => {
+      for (const prev of replaced) store.saveMap(prev);
+      for (const id of added) store.deleteMap(id);
+      store.flush();
+      openMap(store.listMaps().some((e) => e.id === app.map.id) ? app.map.id : store.listMaps()[0]?.id);
+      toast('Restore undone.');
+    },
+  });
 }
 
 async function importFile(file) {
   try {
     if (file.size > 5 * 1024 * 1024) throw new Error('File is too large to be a map export.');
     const data = JSON.parse(await file.text());
-    await importMaps(store.unwrapImport(data), `“${file.name}”`);
+    await importMaps(store.unwrapImport(data), `“${file.name}”`, { allowRestore: true });
   } catch (err) {
     toast(`Import failed: ${err.message}`);
   }

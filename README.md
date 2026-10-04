@@ -8,6 +8,7 @@ A static, installable, offline-first web app for mapping your BJJ game:
 - **Failures and backups**: for each technique, where you end up when it fails, what goes wrong, and which backup techniques you chain into. Mark techniques as *Failing* to track the ones that aren't working.
 - **Flow graph**: an auto-laid-out diagram you can drag, pan, and zoom. Failure paths are drawn as dashed red lines.
 - **Share**: a link that carries the whole map (compressed) in its `#fragment`, so nothing is uploaded. You can also share or download a `.jjmap.json` file.
+- **Backup & restore**: ⚙ → *Export all maps* saves one backup file. Importing it offers **Restore**, which replaces maps that are already on the device with the backup version (with Undo), or **Add as copies**. Maps not in the backup are never touched.
 - **Print**: a clean printout with a graph page, a table per state, and a "When it goes wrong" summary. Save it as a PDF from the print dialog.
 
 ## Run / deploy
