@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Jiu-Jitsu Map</title>
+  <meta name="description" content="Map your Brazilian Jiu-Jitsu game: states, microstates, transitions, failed techniques and backups. Works offline.">
+  <meta name="theme-color" content="#14213d">
+  <meta name="color-scheme" content="light dark">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="JJ Map">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div class="brand">
+        <img src="icons/icon.svg" alt="" width="28" height="28">
+        <span>Jiu-Jitsu Map</span>
+      </div>
+      <div class="map-picker">
+        <label class="sr-only" for="map-select">Current map</label>
+        <select id="map-select"></select>
+        <button id="map-menu-btn" class="icon-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="map-menu" title="Map actions">⋯</button>
+        <div id="map-menu" class="menu" role="menu" hidden>
+          <button type="button" role="menuitem" data-action="new-map">New map</button>
+          <button type="button" role="menuitem" data-action="rename-map">Rename / notes</button>
+          <button type="button" role="menuitem" data-action="duplicate-map">Duplicate</button>
+          <hr>
+          <button type="button" role="menuitem" data-action="import-file">Import file…</button>
+          <button type="button" role="menuitem" data-action="export-file">Export this map</button>
+          <button type="button" role="menuitem" data-action="load-example">Add example map</button>
+          <hr>
+          <button type="button" role="menuitem" data-action="delete-map" class="danger-text">Delete map</button>
+        </div>
+      </div>
+      <div class="spacer"></div>
+      <div class="top-actions">
+        <button id="install-btn" type="button" hidden>Install</button>
+        <button id="share-btn" type="button">Share</button>
+        <button id="print-btn" type="button">Print</button>
+        <button id="settings-btn" type="button" class="icon-btn" title="Data &amp; storage" aria-label="Data and storage">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Zm7.43-2.53c.04-.32.07-.64.07-.97s-.03-.66-.07-.98l2.11-1.65a.5.5 0 0 0 .12-.64l-2-3.46a.5.5 0 0 0-.61-.22l-2.49 1a7.3 7.3 0 0 0-1.69-.98l-.38-2.65A.49.49 0 0 0 14 2h-4a.49.49 0 0 0-.49.42l-.38 2.65c-.61.25-1.17.58-1.69.98l-2.49-1a.5.5 0 0 0-.61.22l-2 3.46a.5.5 0 0 0 .12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.65.07.97l-2.11 1.65a.5.5 0 0 0-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.58 1.69-.98l2.49 1c.22.08.49 0 .61-.22l2-3.46a.5.5 0 0 0-.12-.64l-2.11-1.65Z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <nav class="tabs" role="tablist" aria-label="Views">
+      <button type="button" role="tab" data-view="states" aria-selected="true" aria-controls="view-states">States</button>
+      <button type="button" role="tab" data-view="techniques" aria-selected="false" aria-controls="view-techniques" tabindex="-1">Techniques</button>
+      <button type="button" role="tab" data-view="graph" aria-selected="false" aria-controls="view-graph" tabindex="-1">Flow graph</button>
+    </nav>
+
+    <main>
+      <section id="view-states" class="view" role="tabpanel">
+        <aside class="state-pane" aria-label="States">
+          <div class="pane-head">
+            <input type="search" id="state-filter" placeholder="Filter states" aria-label="Filter states">
+            <button id="add-state-btn" type="button" class="primary">+ State</button>
+          </div>
+          <ul id="state-list" class="state-list"></ul>
+        </aside>
+        <article id="state-detail" class="state-detail" aria-live="polite"></article>
+      </section>
+
+      <section id="view-techniques" class="view" role="tabpanel" hidden>
+        <div class="toolbar">
+          <input type="search" id="tech-search" placeholder="Search techniques" aria-label="Search techniques">
+          <select id="tech-state" aria-label="Filter by state"></select>
+          <select id="tech-type" aria-label="Filter by type"><option value="">All types</option></select>
+          <select id="tech-status" aria-label="Filter by status"><option value="">All statuses</option></select>
+          <span id="tech-count" class="muted"></span>
+          <div class="spacer"></div>
+          <button id="add-tech-btn" type="button" class="primary">+ Technique</button>
+        </div>
+        <div class="table-wrap">
+          <table class="tech-table">
+            <thead>
+              <tr><th>Technique</th><th>From</th><th>Leads to</th><th>If it fails</th><th>Backups</th><th>Status</th></tr>
+            </thead>
+            <tbody id="tech-body"></tbody>
+          </table>
+          <p id="tech-empty" class="empty" hidden>No techniques match.</p>
+        </div>
+      </section>
+
+      <section id="view-graph" class="view" role="tabpanel" hidden>
+        <div class="toolbar">
+          <button id="graph-fit" type="button">Fit</button>
+          <button id="graph-zoom-in" type="button" aria-label="Zoom in">+</button>
+          <button id="graph-zoom-out" type="button" aria-label="Zoom out">−</button>
+          <button id="graph-relayout" type="button">Auto-arrange</button>
+          <label class="check"><input type="checkbox" id="graph-fails"> <span>Failure paths</span></label>
+          <div class="spacer"></div>
+          <ul class="legend" aria-label="Legend">
+            <li><i class="lg cat-neutral"></i>Neutral</li>
+            <li><i class="lg cat-bottom"></i>Bottom</li>
+            <li><i class="lg cat-top"></i>Top</li>
+            <li><i class="lg cat-scramble"></i>Scramble</li>
+            <li><i class="lg-line fail"></i>If it fails</li>
+          </ul>
+        </div>
+        <div class="graph-wrap">
+          <svg id="graph-svg" class="flow-graph" role="application" aria-label="Flow graph. Drag states to arrange, drag the background to pan, scroll or pinch to zoom."></svg>
+          <p id="graph-empty" class="graph-empty" hidden>Add some states to see your flow.</p>
+          <p class="graph-hint">Drag states to arrange · drag background to pan · scroll/pinch to zoom · click a state to open it</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <section id="print-view" aria-hidden="true"></section>
+  <input type="file" id="import-input" accept=".json,application/json" hidden>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <noscript><p class="noscript">Jiu-Jitsu Map needs JavaScript to run.</p></noscript>
+</body>
+</html>
