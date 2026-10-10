@@ -21,7 +21,7 @@ The service worker is cache-first and waits for the user to accept an "Update" p
 
 ## Deployment
 
-Live at https://shoryuken.me/jjm/ (`/var/www/shoryuken.me/jjm/`; see the server's `/var/www/shoryuken.me/CLAUDE.md`). Ship only the served files:
+Live at https://shoryuken.me/jjm/ (`/var/www/shoryuken.me/jjm/`; server conventions are in `../CLAUDE.md`). Ship only the served files:
 
 ```bash
 rsync -a --delete --chmod=D755,F644 index.html manifest.webmanifest sw.js styles.css js icons root@185.163.204.17:/var/www/shoryuken.me/jjm/
