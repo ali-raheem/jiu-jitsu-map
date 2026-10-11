@@ -1,5 +1,14 @@
 # Jiu-Jitsu Map
 
+[![GitHub Pages](https://github.com/ali-raheem/jiu-jitsu-map/actions/workflows/pages.yml/badge.svg)](https://github.com/ali-raheem/jiu-jitsu-map/actions/workflows/pages.yml)
+
+**▶ Try it live: [shoryuken.me/jjm](https://shoryuken.me/jjm/)** · mirror on [GitHub Pages](https://ali-raheem.github.io/jiu-jitsu-map/) · installable, works offline
+
+<p align="center">
+  <a href="https://shoryuken.me/jjm/"><img src="docs/screenshots/desktop.webp" alt="Jiu-Jitsu Map on a desktop browser" width="74%"></a>
+  <a href="https://shoryuken.me/jjm/"><img src="docs/screenshots/mobile.webp" alt="Jiu-Jitsu Map on a phone" width="22%"></a>
+</p>
+
 A static, installable, offline-first web app for mapping your BJJ game:
 
 - **States** (positions such as closed guard or mount), grouped by perspective (neutral / bottom / top / scramble).
