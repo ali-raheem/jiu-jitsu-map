@@ -35,3 +35,7 @@ All paths are relative, so it also works from a sub-path. The service worker nee
 ## Releasing an update
 
 Bump `VERSION` in `sw.js` (and `APP_VERSION` in `js/app.js`). Users get an "Update" prompt.
+
+## Licence
+
+[MIT](LICENSE) © 2026 Ali Raheem.
